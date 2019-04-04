@@ -13,10 +13,16 @@
 }
 @if (startNodeId != null)
 {
+    @* Update the Date & Featured Image field property alias used in the blog item nodes  *@
+    var dateFieldAlias = "date";
+    var featuredImageAlias = "featuredImage";
+
+
+
     @* Get the starting page *@
     var startNode = Umbraco.TypedContent(startNodeId);
     //Gets all blogposts to calculate pages
-    var blogposts = startNode.Children.OrderByDescending(x => x.CreateDate).ToList();
+    var blogposts = startNode.Children.OrderByDescending(x => x.GetPropertyValue<DateTime>(dateFieldAlias)).ToList();
     var pageCount = (int)Math.Ceiling((double)blogposts.Count / (double)numberOfPosts);
     //gets the page from the querystring and sets it to one if it is out of range
     var page = 1;
@@ -37,14 +43,26 @@
 
             @foreach (ContentModels.Blogpost post in pagedBlogposts)
             {
+                var blogDate = post.GetPropertyValue<DateTime>(dateFieldAlias);
+                var blogFeaturedImage = post.GetPropertyValue<IPublishedContent>(featuredImageAlias);
+
                 <a href="@post.Url" class="blogpost">
                     <div class="blogpost-meta">
-                        <small class="blogpost-date">@post.CreateDate.ToShortDateString()</small>
+                        @if (blogDate != default(DateTime))
+                        {
+                            <small class="blogpost-date">@blogDate.ToShortDateString()</small>
+                        }
                         <small class="blogpost-cat">
                             @Html.Partial("~/Views/Partials/CategoryLinks.cshtml", post.Categories)
                         </small>
                     </div>
                     <h3 class="blogpost-title">@post.PageTitle</h3>
+                    @if (blogFeaturedImage != null)
+                    {
+                        <div style="width:250px;height: 150px;overflow: hidden;">
+                            <img style="max-width:100%;" src="@blogFeaturedImage.Url" alt="@blogFeaturedImage.Name" />
+                        </div>
+                    }
                     <div class="blogpost-excerpt">@post.Excerpt</div>
                 </a>
             }

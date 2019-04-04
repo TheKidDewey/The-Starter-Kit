@@ -64,12 +64,30 @@ namespace Umbraco.Web.PublishedContentModels
 		}
 
 		///<summary>
+		/// Date
+		///</summary>
+		[ImplementPropertyType("date")]
+		public DateTime Date
+		{
+			get { return this.GetPropertyValue<DateTime>("date"); }
+		}
+
+		///<summary>
 		/// Excerpt: Introduction to your blog post. This is also used in the summaries on the front of the blog as well as the homepage
 		///</summary>
 		[ImplementPropertyType("excerpt")]
 		public string Excerpt
 		{
 			get { return this.GetPropertyValue<string>("excerpt"); }
+		}
+
+		///<summary>
+		/// Featured Image
+		///</summary>
+		[ImplementPropertyType("featuredImage")]
+		public IPublishedContent FeaturedImage
+		{
+			get { return this.GetPropertyValue<IPublishedContent>("featuredImage"); }
 		}
 
 		///<summary>

@@ -2,6 +2,12 @@
 @using ContentModels = Umbraco.Web.PublishedContentModels;
 @{
     Layout = "Master.cshtml";
+
+
+    @* Update the date field property alias used in the blog item node  *@
+    var dateFieldAlias = "date";
+    var blogDate = Model.Content.GetPropertyValue<DateTime>(dateFieldAlias);
+
 }
 @Html.Partial("~/Views/Partials/SectionHeader.cshtml")
 
@@ -9,7 +15,10 @@
     <div class="container">
         <article>
             <div class="blogpost-meta">
-                <small class="blogpost-date">@Model.Content.CreateDate.ToShortDateString()</small>
+                @if (blogDate != default(DateTime))
+                {
+                    <small class="blogpost-date">@blogDate.ToShortDateString()</small>
+                }
                 <span class="blogpost-cat">
                     @Html.Partial("~/Views/Partials/CategoryLinks.cshtml", Model.Content.Categories)
                 </span>
