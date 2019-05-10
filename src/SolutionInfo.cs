@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyCopyright("Copyright © Umbraco 2018")]
+[assembly: AssemblyCopyright("Copyright © Umbraco 2019")]
 
 [assembly: AssemblyCompany("Umbraco")]
 

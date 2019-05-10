@@ -1,0 +1,110 @@
+﻿@using ContentModels = Umbraco.Web.PublishedContentModels;
+@using Umbraco.Web;
+@inherits Umbraco.Web.Macros.PartialViewMacroPage
+@{
+    var startNodeId = Model.MacroParameters["startNodeId"] != null ? Model.MacroParameters["startNodeId"] : Model.Content.Id;
+    var numberOfPosts = 3;
+    if (Model.MacroParameters["numberOfPosts"] != null)
+    {
+        int.TryParse((string)Model.MacroParameters["numberOfPosts"], out numberOfPosts);
+    }
+
+
+}
+@if (startNodeId != null)
+{
+    @* Update the Date & Featured Image field property alias used in the blog item nodes  *@
+    var dateFieldAlias = "date";
+    var featuredImageAlias = "featuredImage";
+    var tagAlias = "categories";
+
+    @* Get the starting page *@
+var startNode = Umbraco.TypedContent(startNodeId);
+//Gets all blogposts to calculate pages
+var blogposts = startNode.Children;
+if (blogposts != null && blogposts.Any())
+{
+    var newsBlogPosts = blogposts.Where(x => x.HasValue(tagAlias) && x.GetPropertyValue<IEnumerable<string>>(tagAlias).Contains("news"));
+
+    if (newsBlogPosts != null && newsBlogPosts.Any())
+    {
+        var newses = newsBlogPosts.OrderByDescending(x => x.GetPropertyValue<DateTime>(dateFieldAlias)).ToList();
+        var pageCount = (int)Math.Ceiling((double)newses.Count / (double)numberOfPosts);
+        //gets the page from the querystring and sets it to one if it is out of range
+        var page = 1;
+        if (!string.IsNullOrEmpty(Request.QueryString["page"]))
+        {
+            int.TryParse(Request.QueryString["page"], out page);
+            if (page <= 0 || page > pageCount)
+            {
+                page = 1;
+            }
+        }
+        //Gets the blogposts for the current page
+        var pagedNewsPosts = newses.Skip((page - 1) * numberOfPosts).Take(numberOfPosts).ToList();
+
+        if (pagedNewsPosts.Count > 0)
+        {
+                <div class="blogposts">
+
+                    @foreach (ContentModels.Blogpost post in pagedNewsPosts)
+                    {
+                        var blogDate = post.GetPropertyValue<DateTime>(dateFieldAlias);
+                        var blogFeaturedImage = post.GetPropertyValue<IPublishedContent>(featuredImageAlias);
+                        var tags = post.GetPropertyValue<IEnumerable<string>>(tagAlias);
+
+                        <a href="@post.Url" class="blogpost">
+                            <div class="blogpost-meta">
+                                @if (blogDate != default(DateTime))
+                                {
+                                    <small class="blogpost-date">@blogDate.ToShortDateString()</small>
+                                }
+                                <small class="blogpost-cat">
+                                    @Html.Partial("~/Views/Partials/CategoryLinks.cshtml", post.Categories)
+                                </small>
+                            </div>
+                            <h3 class="blogpost-title">@post.PageTitle</h3>
+                            @if (blogFeaturedImage != null)
+                            {
+                                <div style="width:250px;height: 150px;overflow: hidden;">
+                                    <img style="max-width:100%;" src="@blogFeaturedImage.Url" alt="@blogFeaturedImage.Name" />
+                                </div>
+                            }
+                            <div class="blogpost-excerpt">@post.Excerpt</div>
+                        </a>
+                    }
+                </div>
+            }
+
+            if (newses.Count > numberOfPosts)
+            {
+                <div class="pagination">
+                    <nav class="nav-bar nav-bar--center">
+                        @if (page <= 1)
+                        {
+                            <span class="nav-link nav-link--black nav-link--disabled">Prev</span>
+                        }
+                        else
+                        {
+                            <a class="nav-link nav-link--black" href="@(Model.Content.Url + "?page=" + (page - 1))">Prev</a>
+                        }
+
+                        @for (int i = 1; i <= pageCount; i++)
+                        {
+                            <a class="nav-link nav-link--black @(page == i ? "nav-link--active" : null)" href="@(Model.Content.Url + "?page=" + i)">@i</a>
+                        }
+                        @if (page == pageCount)
+                        {
+                            <span class="nav-link nav-link--black nav-link--disabled">Next</span>
+                        }
+                        else
+                        {
+                            <a class="nav-link nav-link--black" href="@(Model.Content.Url + "?page=" + (page + 1))">Next</a>
+                        }
+
+                    </nav>
+                </div>
+            }
+        }
+    }
+}
